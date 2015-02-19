@@ -16,7 +16,7 @@ namespace SignalCompiler
             {
                 return;
             }
-            string code = File.ReadAllText(filename);
+            
         }
 
         private static string GetProgramCode(string[] args)

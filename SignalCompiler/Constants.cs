@@ -24,17 +24,19 @@ namespace SignalCompiler
         public static IEnumerable<string> GlobalLexemTable;
         public const string BegComment = "(*";
         public const string EndComment = "*)";
-        public static readonly IDictionary<int, string> LexemsTable;
-        public static readonly IDictionary<string, int> LexemsIdTable;
+        public static IDictionary<int, string> LexemsTable;
+        public static IDictionary<string, int> LexemsIdTable;
+        public static IDictionary<int, string> ConstantsTable;
+        public static IDictionary<string, int> ConstantsIdTable;
         public static LexemType[] Attributes;
-        public static int LastLexemId;
-        public static int LastConstId;
+        public static int LastIdentifierId = IdentifierStartIndex;
+        public static int LastConstId = ConstStartIndex;
         public const int DelimStartIndex = 300;
         public const int KeywordStartIndex = 400;
         public const int ConstStartIndex = 500;
         public const int IdentifierStartIndex = 1000;
 
-        public static int? GetId(string lexem)
+        public static int? GetLexemId(string lexem)
         {
             if (LexemsIdTable.ContainsKey(lexem))
                 return LexemsIdTable[lexem];
@@ -50,11 +52,38 @@ namespace SignalCompiler
             return null;
         }
 
-        public static void RegisterLexem(string lexem)
+
+        public static int? GetConstId(string lexem)
         {
-            LastLexemId++;
-            LexemsTable.Add(LastLexemId, lexem);
-            LexemsIdTable.Add(lexem, LastLexemId);
+            if (ConstantsIdTable.ContainsKey(lexem))
+                return ConstantsIdTable[lexem];
+
+            return null;
+        }
+
+        public static string GetConst(int id)
+        {
+            if (ConstantsTable.ContainsKey(id))
+                return ConstantsTable[id];
+
+            return null;
+        }
+
+        public static int RegisterConstant(string lexem)
+        {
+            LastConstId++;
+            ConstantsTable.Add(LastIdentifierId, lexem);
+            ConstantsIdTable.Add(lexem, LastIdentifierId);
+            return LastConstId;
+        }
+
+
+        public static int RegisterLexem(string lexem)
+        {
+            LastIdentifierId++;
+            LexemsTable.Add(LastIdentifierId, lexem);
+            LexemsIdTable.Add(lexem, LastIdentifierId);
+            return LastIdentifierId;
         }
 
         private static IEnumerable<char> GenCharEnumerable(char start, char fin)
@@ -92,18 +121,22 @@ namespace SignalCompiler
                 "IF",  "THEN",  "ENDIF",
                 "WHILE","DO", "ENDWHILE"
             };
-
+            //is this needed?
             GlobalLexemTable = Letters.Select(x => x.ToString())
                                     .Union(Digits.Select(x => x.ToString()))
                                     .Union(Delimiter.Select(x => x.ToString()))
                                     .Union(MultiSymbolDelimiter)
                                     .Union(Keywords)
                                     .OrderBy(x => x);
+            FillAttributes();
+        }
 
+        private static void FillAttributes()
+        {
             LexemsTable = new SortedDictionary<int, string>();
             LexemsIdTable = new SortedDictionary<string, int>();
-            
-            for (int i = 0; i < 255; i++)
+            Attributes = new LexemType[255];
+            for (int i = 0; i < Attributes.Length; i++)
             {
                 Attributes[i] = CharType((char) i);
                 if (Attributes[i] != LexemType.Unacceptable)
@@ -148,6 +181,11 @@ namespace SignalCompiler
             if (Delimiter.Contains(i))
             {
                 return LexemType.ShortDelimiter;
+            }
+            //??
+            if (i == BegComment[0])
+            {
+                return LexemType.BegComment;
             }
             return LexemType.Unacceptable;
         }
