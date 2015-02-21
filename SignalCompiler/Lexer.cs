@@ -27,10 +27,12 @@ namespace SignalCompiler
             {
                 char cur = code[i];
                 int lexemCode = 0;
+                bool skipAdding = false;
                 var attr = Constants.Attributes[cur];
                 if (attr == Constants.LexemType.Whitespace)
                 {
                     i = SkipWhiteSpace(i, code);
+                    skipAdding = true;
                 }else if (attr == Constants.LexemType.Const)
                 {
                     lexemCode = ExamineConstant(ref i, code);
@@ -46,28 +48,48 @@ namespace SignalCompiler
                 else if (attr == Constants.LexemType.LongDelimiter ||
                          attr == Constants.LexemType.ShortDelimiter)
                 {
-                    lexemCode = ExamideDelimiter(ref i, code);
+                    lexemCode = ExamineDelimiter(ref i, code);
                 }
                 else 
                 {
                     //throw error?
                     Console.WriteLine("Error at {0}: unacceptable symbol", i);
                     lexemCode = -1;
+                    skipAdding = true;
                     i++;
                 }
 
-                Console.WriteLine("lexType= {0}", lexemCode);
 
-                lexems.Add(lexemCode);
+                if (!skipAdding)
+                {
+                    Console.WriteLine("lexType= {0}\n", lexemCode);
+                    lexems.Add(lexemCode);
+                }
+                    
             }
 
 
             return lexems.ToArray();
         }
 
-        private int ExamideDelimiter(ref int i, string code)
+        private int ExamineDelimiter(ref int i, string code)
         {
-            throw new NotImplementedException();
+            if (code[i] == ';')
+            {
+                i++;
+                return (int)Constants.GetLexemId(";");
+            }
+
+            var subStr = code.Substring(i, 2);
+            var possibleLongDelimiter = Constants.GetLexemId(subStr);
+
+            if (possibleLongDelimiter == null)
+            {
+                i++;
+                return (int) Constants.GetLexemId(code[i - 1].ToString());
+            }
+            i += 2;
+            return (int) possibleLongDelimiter;
         }
 
         private int SkipComment(ref int i, string code)
@@ -77,36 +99,38 @@ namespace SignalCompiler
 
         private static int ExamineIdentifier(ref int i, string code)
         {
-            string buffer = "";
+            StringBuilder buffer = new StringBuilder();
             while (i < code.Length &&
                    (Constants.Attributes[code[i]] == Constants.LexemType.Identifier
                     || Constants.Attributes[code[i]] == Constants.LexemType.Const))
             {
-                buffer += code[i];
+                buffer.Append(code[i]);
                 i++;
             }
-            int? identifierId = Constants.GetLexemId(buffer);
+            var bufRes = buffer.ToString();
+            int? identifierId = Constants.GetLexemId(bufRes);
             if (identifierId == null)
             {
-                return Constants.RegisterConstant(buffer);
+                return Constants.RegisterLexem(bufRes);
             }
             return (int) identifierId;
         }
 
         private static int ExamineConstant(ref int i, string code)
         {
-            string buffer = "";
+            StringBuilder buffer = new StringBuilder("");
             while (i < code.Length
-                   && Constants.Attributes[i] == Constants.LexemType.Const)
+                   && Constants.Attributes[code[i]] == Constants.LexemType.Const)
             {
-                buffer += code[i];
+                buffer.Append(code[i]);
                 i++;
             }
-            int? constId = Constants.GetConstId(buffer);
+            var bufRes = buffer.ToString();
+            int? constId = Constants.GetConstId(bufRes);
             //if not registered - register
             if (constId == null)
             {
-                return Constants.RegisterConstant(buffer);
+                return Constants.RegisterConstant(bufRes);
             }
             return (int) constId;
         }

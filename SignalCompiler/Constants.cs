@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace SignalCompiler
@@ -26,8 +27,6 @@ namespace SignalCompiler
         public const string EndComment = "*)";
         public static IDictionary<int, string> LexemsTable;
         public static IDictionary<string, int> LexemsIdTable;
-        public static IDictionary<int, string> ConstantsTable;
-        public static IDictionary<string, int> ConstantsIdTable;
         public static LexemType[] Attributes;
         public static int LastIdentifierId = IdentifierStartIndex;
         public static int LastConstId = ConstStartIndex;
@@ -55,16 +54,16 @@ namespace SignalCompiler
 
         public static int? GetConstId(string lexem)
         {
-            if (ConstantsIdTable.ContainsKey(lexem))
-                return ConstantsIdTable[lexem];
+            if (LexemsIdTable.ContainsKey(lexem))
+                return LexemsIdTable[lexem];
 
             return null;
         }
 
         public static string GetConst(int id)
         {
-            if (ConstantsTable.ContainsKey(id))
-                return ConstantsTable[id];
+            if (LexemsTable.ContainsKey(id))
+                return LexemsTable[id];
 
             return null;
         }
@@ -72,11 +71,23 @@ namespace SignalCompiler
         public static int RegisterConstant(string lexem)
         {
             LastConstId++;
-            ConstantsTable.Add(LastIdentifierId, lexem);
-            ConstantsIdTable.Add(lexem, LastIdentifierId);
+            LexemsTable.Add(LastConstId, lexem);
+            LexemsIdTable.Add(lexem, LastConstId);
+            //Console.WriteLine("added constant:");
+            //PrintDict(LexemsTable);
+            //Console.WriteLine("idtable:");
+            //PrintDict(LexemsIdTable);
             return LastConstId;
         }
 
+
+        public static void PrintDict<T1, T2>(IDictionary<T1, T2> dict)
+        {
+            foreach (var p in dict)
+            {
+                Console.WriteLine("{0}:{1}", p.Key, p.Value);
+            }
+        }
 
         public static int RegisterLexem(string lexem)
         {
@@ -129,6 +140,8 @@ namespace SignalCompiler
                                     .Union(Keywords)
                                     .OrderBy(x => x);
             FillAttributes();
+            //ConstantsIdTable = new Dictionary<string, int>();
+            //ConstantsTable = new SortedDictionary<int, string>();
         }
 
         private static void FillAttributes()

@@ -16,7 +16,15 @@ namespace SignalCompiler
             {
                 return;
             }
-            
+            var lexer = new Lexer();
+            var lexTable = lexer.Feed(filename);
+            foreach (int lexem in lexTable)
+            {
+                var curLexem = Constants.GetLexem(lexem);
+                if (String.IsNullOrEmpty(curLexem))
+                    curLexem = Constants.GetConst(lexem);
+                Console.WriteLine("i = {0}, lexem: {1}", lexem, curLexem);
+            }
         }
 
         private static string GetProgramCode(string[] args)
