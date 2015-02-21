@@ -20,10 +20,7 @@ namespace SignalCompiler
             var lexTable = lexer.Feed(filename);
             foreach (int lexem in lexTable)
             {
-                var curLexem = Constants.GetLexem(lexem);
-                if (String.IsNullOrEmpty(curLexem))
-                    curLexem = Constants.GetConst(lexem);
-                Console.WriteLine("i = {0}, lexem: {1}", lexem, curLexem);
+                Console.WriteLine("i = {0}, lexem: {1}", lexem, Constants.GetLexem(lexem));
             }
         }
 

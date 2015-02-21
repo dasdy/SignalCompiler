@@ -126,7 +126,7 @@ namespace SignalCompiler
                 i++;
             }
             var bufRes = buffer.ToString();
-            int? constId = Constants.GetConstId(bufRes);
+            int? constId = Constants.GetLexemId(bufRes);
             //if not registered - register
             if (constId == null)
             {

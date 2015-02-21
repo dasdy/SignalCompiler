@@ -51,23 +51,6 @@ namespace SignalCompiler
             return null;
         }
 
-
-        public static int? GetConstId(string lexem)
-        {
-            if (LexemsIdTable.ContainsKey(lexem))
-                return LexemsIdTable[lexem];
-
-            return null;
-        }
-
-        public static string GetConst(int id)
-        {
-            if (LexemsTable.ContainsKey(id))
-                return LexemsTable[id];
-
-            return null;
-        }
-
         public static int RegisterConstant(string lexem)
         {
             LastConstId++;
