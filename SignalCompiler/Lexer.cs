@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SignalCompiler
 {
     public class Lexer
     {
-        public int[] Feed(string filepath)
+        public int[] Feed(string filepath, List<CompilerError> errors)
         {
             string code;
             var lexems = new List<int>();
@@ -33,7 +31,8 @@ namespace SignalCompiler
                 {
                     i = SkipWhiteSpace(i, code);
                     skipAdding = true;
-                }else if (attr == Constants.LexemType.Const)
+                }
+                else if (attr == Constants.LexemType.Const)
                 {
                     lexemCode = ExamineConstant(ref i, code);
                 }
@@ -43,17 +42,31 @@ namespace SignalCompiler
                 }
                 else if (attr == Constants.LexemType.BegComment)
                 {
+                    int startCommentPos = i;
                     lexemCode = SkipComment(ref i, code);
+                    if (lexemCode == -1)
+                    {
+                        errors.Add(new CompilerError
+                        {
+                            Message = "unclosed comment",
+                            Position = startCommentPos,
+                        });
+                    }
+                    skipAdding = true;
                 }
                 else if (attr == Constants.LexemType.LongDelimiter ||
                          attr == Constants.LexemType.ShortDelimiter)
                 {
                     lexemCode = ExamineDelimiter(ref i, code);
                 }
-                else 
+                else
                 {
                     //throw error?
-                    Console.WriteLine("Error at {0}: unacceptable symbol", i);
+                    errors.Add(new CompilerError
+                    {
+                        Message = "unacceptable symbol",
+                        Position = i,
+                    });
                     lexemCode = -1;
                     skipAdding = true;
                     i++;
@@ -65,7 +78,7 @@ namespace SignalCompiler
                     Console.WriteLine("lexType= {0}\n", lexemCode);
                     lexems.Add(lexemCode);
                 }
-                    
+
             }
 
 
@@ -74,7 +87,7 @@ namespace SignalCompiler
 
         private int ExamineDelimiter(ref int i, string code)
         {
-            if (code[i] == ';')
+            if (code[i] == ';' || code[i] == '=')
             {
                 i++;
                 return (int)Constants.GetLexemId(";");
@@ -86,15 +99,36 @@ namespace SignalCompiler
             if (possibleLongDelimiter == null)
             {
                 i++;
-                return (int) Constants.GetLexemId(code[i - 1].ToString());
+                return (int)Constants.GetLexemId(code[i - 1].ToString());
             }
             i += 2;
-            return (int) possibleLongDelimiter;
+            return (int)possibleLongDelimiter;
         }
 
         private int SkipComment(ref int i, string code)
         {
-            throw new NotImplementedException();
+            i++;
+            if (code[i] != Constants.BegComment[1])
+            {
+                return -1;
+            }
+            while (i < code.Length)
+            {
+                //skip until *
+                while (i < code.Length
+                       && code[i] != Constants.EndComment[0])
+                    i++;
+
+                i++;
+                //if after '*' is ')'
+                if (i < code.Length - 1
+                    && code[i] == Constants.EndComment[1])
+                {
+                    i++;
+                    return 0;
+                }
+            }
+            return -1;
         }
 
         private static int ExamineIdentifier(ref int i, string code)
@@ -113,7 +147,7 @@ namespace SignalCompiler
             {
                 return Constants.RegisterLexem(bufRes);
             }
-            return (int) identifierId;
+            return (int)identifierId;
         }
 
         private static int ExamineConstant(ref int i, string code)
@@ -132,7 +166,7 @@ namespace SignalCompiler
             {
                 return Constants.RegisterConstant(bufRes);
             }
-            return (int) constId;
+            return (int)constId;
         }
 
         private static int SkipWhiteSpace(int i, string code)

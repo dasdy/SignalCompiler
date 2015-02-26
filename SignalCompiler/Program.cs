@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SignalCompiler
 {
@@ -17,10 +14,16 @@ namespace SignalCompiler
                 return;
             }
             var lexer = new Lexer();
-            var lexTable = lexer.Feed(filename);
+            var errors = new List<CompilerError>();
+            var lexTable = lexer.Feed(filename, errors);
             foreach (int lexem in lexTable)
             {
                 Console.WriteLine("i = {0}, lexem: {1}", lexem, Constants.GetLexem(lexem));
+            }
+            Console.WriteLine("Errors:");
+            foreach (var error in errors)
+            {
+                Console.WriteLine(error);
             }
         }
 
