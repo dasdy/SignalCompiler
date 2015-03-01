@@ -26,6 +26,11 @@ namespace SignalCompiler
                 char cur = code[i];
                 int lexemCode = 0;
                 bool skipAdding = false;
+                if (cur >= Constants.Attributes.Length)
+                {
+                    //unacceptable symbol
+                    cur = (char)0;
+                }
                 var attr = Constants.Attributes[cur];
                 if (attr == Constants.LexemType.Whitespace)
                 {
@@ -134,9 +139,8 @@ namespace SignalCompiler
         private static int ExamineIdentifier(ref int i, string code)
         {
             StringBuilder buffer = new StringBuilder();
-            while (i < code.Length &&
-                   (Constants.Attributes[code[i]] == Constants.LexemType.Identifier
-                    || Constants.Attributes[code[i]] == Constants.LexemType.Const))
+            while (CheckEquality(i, code, Constants.LexemType.Identifier) || 
+                    CheckEquality(i, code, Constants.LexemType.Const))
             {
                 buffer.Append(code[i]);
                 i++;
@@ -153,8 +157,7 @@ namespace SignalCompiler
         private static int ExamineConstant(ref int i, string code)
         {
             StringBuilder buffer = new StringBuilder("");
-            while (i < code.Length
-                   && Constants.Attributes[code[i]] == Constants.LexemType.Const)
+            while (CheckEquality(i, code, Constants.LexemType.Const))
             {
                 buffer.Append(code[i]);
                 i++;
@@ -171,12 +174,18 @@ namespace SignalCompiler
 
         private static int SkipWhiteSpace(int i, string code)
         {
-            while (i < code.Length
-                   && Constants.Attributes[code[i]] == Constants.LexemType.Whitespace)
+            while (CheckEquality(i, code,  Constants.LexemType.Whitespace))
             {
                 i++;
             }
             return i;
+        }
+
+        private static bool CheckEquality(int i, string code, Constants.LexemType type)
+        {
+            return i < code.Length
+                   && code[i] < Constants.Attributes.Length
+                   && Constants.Attributes[code[i]] == type;
         }
     }
 }

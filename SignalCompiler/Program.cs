@@ -16,14 +16,25 @@ namespace SignalCompiler
             var lexer = new Lexer();
             var errors = new List<CompilerError>();
             var lexTable = lexer.Feed(filename, errors);
-            foreach (int lexem in lexTable)
+            //foreach (int lexem in lexTable)
+            //{
+            //    Console.WriteLine("i = {0}, lexem: {1}", lexem, Constants.GetLexem(lexem));
+            //}
+            Console.WriteLine("Lexems: ");
+            foreach (var lex in lexTable)
             {
-                Console.WriteLine("i = {0}, lexem: {1}", lexem, Constants.GetLexem(lexem));
+                Console.Write("{0}, ", lex);
             }
-            Console.WriteLine("Errors:");
+            Console.WriteLine("\nErrors:");
             foreach (var error in errors)
             {
-                Console.WriteLine(error);
+                Console.WriteLine("{0} : {1}", error.Position, error.Message);
+            }
+            Console.ReadKey(false);
+            Console.WriteLine("Table: ");
+            foreach (var lex in Constants.LexemsTable)
+            {
+                Console.WriteLine("{0}: {1}", lex.Key, lex.Value);
             }
         }
 

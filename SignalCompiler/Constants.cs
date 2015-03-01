@@ -112,7 +112,7 @@ namespace SignalCompiler
                 "PROGRAM",
                 "BEGIN",
                 "END",
-                "IF",  "THEN",  "ENDIF",
+                "IF",  "THEN", "ELSE", "ENDIF", 
                 "WHILE","DO", "ENDWHILE"
             };
             //is this needed?
