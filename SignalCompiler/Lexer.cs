@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace SignalCompiler
@@ -48,13 +49,17 @@ namespace SignalCompiler
                 else if (attr == Constants.LexemType.BegComment)
                 {
                     int startCommentPos = i;
+                    Console.WriteLine("started comment");
                     lexemCode = SkipComment(ref i, code);
                     if (lexemCode == -1)
                     {
+                        int line = CountLines(startCommentPos, code);
                         errors.Add(new CompilerError
                         {
                             Message = "unclosed comment",
                             Position = startCommentPos,
+                            Line = line
+                            
                         });
                     }
                     skipAdding = true;
@@ -67,10 +72,12 @@ namespace SignalCompiler
                 else
                 {
                     //throw error?
+                    int line = CountLines(i, code);
                     errors.Add(new CompilerError
                     {
                         Message = "unacceptable symbol",
                         Position = i,
+                        Line = line,
                     });
                     lexemCode = -1;
                     skipAdding = true;
@@ -88,6 +95,16 @@ namespace SignalCompiler
 
 
             return lexems.ToArray();
+        }
+
+        private static int CountLines(int startCommentPos, string code)
+        {
+            int line = 1;
+            for (int iter = 0; iter < startCommentPos; iter++)
+            {
+                if (code[iter] == '\n') line++;
+            }
+            return line;
         }
 
         private int ExamineDelimiter(ref int i, string code)
@@ -112,6 +129,7 @@ namespace SignalCompiler
 
         private int SkipComment(ref int i, string code)
         {
+            int start = i;
             i++;
             if (code[i] != Constants.BegComment[1])
             {
@@ -127,6 +145,7 @@ namespace SignalCompiler
                 i++;
                 //if after '*' is ')'
                 if (i < code.Length - 1
+                    && start - i > 1
                     && code[i] == Constants.EndComment[1])
                 {
                     i++;

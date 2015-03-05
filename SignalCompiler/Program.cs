@@ -28,7 +28,7 @@ namespace SignalCompiler
             Console.WriteLine("\nErrors:");
             foreach (var error in errors)
             {
-                Console.WriteLine("{0} : {1}", error.Position, error.Message);
+                Console.WriteLine("{0} : {1}", error.Line, error.Message);
             }
             Console.ReadKey(false);
             Console.WriteLine("Table: ");
