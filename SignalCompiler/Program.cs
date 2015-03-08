@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using SignalCompiler.Models;
 
 namespace SignalCompiler
 {
@@ -36,6 +37,10 @@ namespace SignalCompiler
             {
                 Console.WriteLine("{0}: {1}", lex.Key, lex.Value);
             }
+
+
+            var syntaxer = new Syntaxer();
+            var tree = syntaxer.Feed(lexTable, errors);
         }
 
         private static string GetProgramCode(string[] args)

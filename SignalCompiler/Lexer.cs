@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SignalCompiler.Models;
 
 namespace SignalCompiler
 {
@@ -145,7 +146,7 @@ namespace SignalCompiler
                 i++;
                 //if after '*' is ')'
                 if (i < code.Length - 1
-                    && start - i > 1
+                    //&& start - i > 1
                     && code[i] == Constants.EndComment[1])
                 {
                     i++;

@@ -1,4 +1,4 @@
-﻿namespace SignalCompiler
+﻿namespace SignalCompiler.Models
 {
     public class CompilerError
     {

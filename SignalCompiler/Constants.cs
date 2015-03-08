@@ -135,7 +135,8 @@ namespace SignalCompiler
             for (int i = 0; i < Attributes.Length; i++)
             {
                 Attributes[i] = CharType((char) i);
-                if (Attributes[i] != LexemType.Unacceptable)
+                if (Attributes[i] == LexemType.ShortDelimiter ||
+                    Attributes[i] == LexemType.LongDelimiter)
                 {
                     string stringRepOfChar = ((char) i).ToString();
                     LexemsTable.Add(i, stringRepOfChar);
