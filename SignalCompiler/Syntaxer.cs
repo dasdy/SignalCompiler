@@ -14,32 +14,46 @@ namespace SignalCompiler
             return Program(lexTable, errors);
         }
 
+        private bool CheckTop(List<Lexem> lexTable, string val, IList<CompilerError> errors)
+        {
+            if (lexTable[0].Id != Constants.GetLexemId(val))
+            {
+                errors.Add(new CompilerError
+                {
+                    Message = string.Format("expected: '{0}'", val),
+                    Position = lexTable[0].Position,
+                });
+
+                return false;
+            }
+            lexTable.RemoveAt(0);
+            return true;
+        }
+
+        public void PrintLexTable(List<Lexem> lexTable, string message)
+        {
+            Console.WriteLine(message);
+
+            foreach (var lexem in lexTable)
+            {
+                Console.WriteLine(lexem);
+            }
+            //Console.ReadKey(true);
+            Console.WriteLine();
+
+        }
+
         private SyntaxTree Program(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            
-            if (lexTable[0].Id != Constants.GetLexemId("PROGRAM"))
-            {
-                errors.Add(new CompilerError
-                {
-                    Message = @"expected 'PROGRAM'",
-                    Position = lexTable[0].Position
-                });
-                return null;
-            }
-            lexTable.RemoveAt(0);
 
+            if (!CheckTop(lexTable, "PROGRAM", errors)) return null;
+
+            PrintLexTable(lexTable, "after program popup");
             var procedureIdentifier = ProcIdentifier(lexTable, errors);
 
-            if (lexTable[0].Id != Constants.GetLexemId(";"))
-            {
-                errors.Add(new CompilerError
-                {
-                    Position = lexTable[0].Position,
-                    Message = @"expected ';'",
-                });
-                return null;
-            }
-            lexTable.RemoveAt(0);
+            PrintLexTable(lexTable, "after procIdentificator popup");
+            if (!CheckTop(lexTable, ";", errors)) return null;
+            PrintLexTable(lexTable, "after ';' popup 1");
 
             var block = Block(lexTable, errors);
 
@@ -55,19 +69,15 @@ namespace SignalCompiler
 
         private SyntaxTree.Node Block(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            if (lexTable[0].Id != Constants.GetLexemId("BEGIN"))
-            {
-                errors.Add(new CompilerError
-                {
-                    Message = @"expected 'BEGIN'",
-                    Position = lexTable[0].Position
-                });
-                return null;
-            }
-            lexTable.RemoveAt(0);
+            if (!CheckTop(lexTable, "BEGIN", errors)) return null;
 
-            var stmtlist = Stmt(lexTable, errors);
+            PrintLexTable(lexTable, "after begin popup");
 
+            var stmtlist = Stmtlist(lexTable, errors);
+            PrintLexTable(lexTable, "after stmtlist popup");
+            if (!CheckTop(lexTable, "END", errors)) ;
+
+            PrintLexTable(lexTable, "after end popup");
             return new SyntaxTree.Node
             {
                 Children = new List<SyntaxTree.Node> { stmtlist },
@@ -80,6 +90,7 @@ namespace SignalCompiler
         private SyntaxTree.Node Stmtlist(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var stmt = Stmt(lexTable, errors);
+            //PrintLexTable(lexTable, "after stmt popup");
             if (stmt == null)
             {
                 return null;
@@ -87,8 +98,13 @@ namespace SignalCompiler
 
             var nextStatements = Stmtlist(lexTable, errors);
 
+            //PrintLexTable(lexTable, "after stmtlist popup");
+
             var children = new List<SyntaxTree.Node> { stmt };
-            children.AddRange(nextStatements.Children);
+            if (nextStatements != null)
+            {
+                children.AddRange(nextStatements.Children);
+            }
 
             return new SyntaxTree.Node
             {
@@ -104,128 +120,83 @@ namespace SignalCompiler
             if (lexTable[0].Id == Constants.GetLexemId("WHILE"))
             {
                 lexTable.RemoveAt(0);
+                PrintLexTable(lexTable, "after while popup");
                 var condExpr = CondExpr(lexTable, errors);
-
-                if (lexTable[0].Id != Constants.GetLexemId("DO"))
-                {
-                    errors.Add(new CompilerError
-                    {
-                        Message = @"expected 'DO'",
-                        Position = lexTable[0].Position
-                    });
-                    return null;
-                }
-                lexTable.RemoveAt(0);
-
+                //PrintLexTable(lexTable, "after condExpr popup");
+                if (!CheckTop(lexTable, "DO", errors)) return null;
+                PrintLexTable(lexTable, "after DO popup");
                 var stmtlist = Stmtlist(lexTable, errors);
+                //PrintLexTable(lexTable, "after stmtlist popup");
 
-                if (lexTable[0].Id != Constants.GetLexemId("ENDWHILE"))
-                {
-                    errors.Add(new CompilerError
-                    {
-                        Message = @"expected 'ENDWHILE'",
-                        Position = lexTable[0].Position
-                    });
-                    return null;
-                }
-                lexTable.RemoveAt(0);
-
-                if (lexTable[0].Id != Constants.GetLexemId(";"))
-                {
-                    errors.Add(new CompilerError
-                    {
-                        Message = @"expected ';'",
-                        Position = lexTable[0].Position
-                    });
-                    return null;
-                }
-                lexTable.RemoveAt(0);
-
+                if (!CheckTop(lexTable, "ENDWHILE", errors)) return null;
+                PrintLexTable(lexTable, "after ENDWHILE popup");
+                if (!CheckTop(lexTable, ";", errors)) return null;
+                PrintLexTable(lexTable, "after ';' popup 2");
                 return new SyntaxTree.Node
                 {
-                    Children = new List<SyntaxTree.Node> { condExpr, stmtlist },
+                    Children = new List<SyntaxTree.Node> { new SyntaxTree.Node
+                    {
+                     Children =  new []{condExpr, stmtlist},
+                     Type = "WhileStmt",
+                     Value = null,
+                    }},
                     Type = "Stmt",
                     Value = null
                 };
             }
 
-
-            var condStatement = CondStmt(lexTable, errors);
-
-            if (lexTable[0].Id != Constants.GetLexemId("ENDIF"))
+            if (lexTable[0].Id == Constants.GetLexemId("IF"))
             {
-                errors.Add(new CompilerError
-                {
-                    Message = @"expected 'ENDIF'",
-                    Position = lexTable[0].Position
-                });
-                return null;
-            }
-            lexTable.RemoveAt(0);
 
 
-            if (lexTable[0].Id != Constants.GetLexemId(";"))
-            {
-                errors.Add(new CompilerError
+                var condStatement = CondStmt(lexTable, errors);
+
+                //PrintLexTable(lexTable, "after condStmt popup");
+                if (!CheckTop(lexTable, "ENDIF", errors)) return null;
+                PrintLexTable(lexTable, "after endIf popup");
+                if (!CheckTop(lexTable, ";", errors)) return null;
+                PrintLexTable(lexTable, "after ';' popup 3");
+
+                return new SyntaxTree.Node
                 {
-                    Message = @"expected ';'",
-                    Position = lexTable[0].Position
-                });
-                return null;
+                    Children = new List<SyntaxTree.Node> { condStatement },
+                    Type = "Stmt",
+                    Value = null,
+                };
+
             }
 
-
-            lexTable.RemoveAt(0);
-            return new SyntaxTree.Node
-            {
-                Children = new List<SyntaxTree.Node> { condStatement },
-                Type = "Stmt",
-                Value = null,
-            };
+            return null;
         }
 
         private SyntaxTree.Node CondStmt(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var thenStmt = ThenStmt(lexTable, errors);
+            //PrintLexTable(lexTable, "after thenStmt popup");
             var elseStmt = ElseStmt(lexTable, errors);
+            //PrintLexTable(lexTable, "after elseStmt popup");
             var children = new List<SyntaxTree.Node> { thenStmt };
+
             if (elseStmt != null) children.Add(elseStmt);
+
             return new SyntaxTree.Node
             {
                 Children = children,
-                Type = "ConditionalStmt",
+                Type = "IfStmt",
                 Value = null,
             };
         }
 
         private SyntaxTree.Node ThenStmt(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            if (lexTable[0].Id == Constants.GetLexemId("IF"))
-            {
-                errors.Add(new CompilerError
-                {
-                    Message = @"expected 'IF'",
-                    Position = lexTable[0].Position
-                });
-                return null;
-            }
-            lexTable.RemoveAt(0);
-
+            if (!CheckTop(lexTable, "IF", errors)) return null;
+            PrintLexTable(lexTable, "after IF popup");
             var condition = CondExpr(lexTable, errors);
 
-            if (lexTable[0].Id == Constants.GetLexemId("THEN"))
-            {
-                errors.Add(new CompilerError
-                {
-                    Message = @"expected 'THEN'",
-                    Position = lexTable[0].Position
-                });
-                return null;
-            }
-            lexTable.RemoveAt(0);
-
+            if (!CheckTop(lexTable, "THEN", errors)) return null;
+            PrintLexTable(lexTable, "after THEN popup");
             var stmts = Stmtlist(lexTable, errors);
-
+            //PrintLexTable(lexTable, "after stmtlist popup");
             return new SyntaxTree.Node
             {
                 Children = new List<SyntaxTree.Node> { condition, stmts },
@@ -239,7 +210,9 @@ namespace SignalCompiler
             if (lexTable[0].Id == Constants.GetLexemId("ELSE"))
             {
                 lexTable.RemoveAt(0);
+                PrintLexTable(lexTable, "before ELSE popup");
                 var stmtList = Stmtlist(lexTable, errors);
+                //PrintLexTable(lexTable, "after stmtlist popup");
                 return new SyntaxTree.Node
                 {
                     Children = new List<SyntaxTree.Node> { stmtList },
@@ -254,9 +227,11 @@ namespace SignalCompiler
         private SyntaxTree.Node CondExpr(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var lExpr = Expression(lexTable, errors);
+            //PrintLexTable(lexTable, "after lExpr popup");
             var comparison = ComparisonOp(lexTable, errors);
+            //PrintLexTable(lexTable, "after condOp popup");
             var rExpr = Expression(lexTable, errors);
-
+            //PrintLexTable(lexTable, "after rExpr popup");
             return new SyntaxTree.Node
             {
                 Children = new List<SyntaxTree.Node> { lExpr, comparison, rExpr },
@@ -268,6 +243,7 @@ namespace SignalCompiler
         private SyntaxTree.Node ComparisonOp(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var node = Constants.GetLexem(lexTable[0].Id);
+            var top = lexTable[0];
             lexTable.RemoveAt(0);
 
             if (Constants.ComparisonOperators.Contains(node))
@@ -275,11 +251,13 @@ namespace SignalCompiler
                 return new SyntaxTree.Node
                 {
                     Children = null,
-                    Type = "ComparisonOperator",
-                    Value = node,
+                    Type = "CompOp",
+                    Value = top,
                 };
             }
 
+
+            PrintLexTable(lexTable, "after compOp popup");
             errors.Add(new CompilerError
             {
                 Message = "Unknown comparisonOperator:" + node,
@@ -290,6 +268,7 @@ namespace SignalCompiler
 
         private SyntaxTree.Node Expression(List<Lexem> lexTable, IList<CompilerError> errors)
         {
+            PrintLexTable(lexTable, "before expr popup");
             var id = lexTable[0].Id;
             string type;
             SyntaxTree.Node child;
@@ -308,9 +287,15 @@ namespace SignalCompiler
             }
             else
             {
+                errors.Add(new CompilerError
+                {
+                    Message = "expected id or number",
+                    Position = lexTable[0].Position
+                   
+                });
                 return null;
             }
-            
+            PrintLexTable(lexTable, "after expression popup");
             return new SyntaxTree.Node
             {
                 Children = new List<SyntaxTree.Node> { child },
@@ -322,6 +307,7 @@ namespace SignalCompiler
         private SyntaxTree.Node VarIdentifier(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var node = Identifier(lexTable, errors);
+            //PrintLexTable(lexTable, "after id popup");
             return new SyntaxTree.Node
             {
                 Children = new List<SyntaxTree.Node> { node },
@@ -333,6 +319,7 @@ namespace SignalCompiler
         private SyntaxTree.Node ProcIdentifier(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var node = Identifier(lexTable, errors);
+            //PrintLexTable(lexTable, "after id popup");
             return new SyntaxTree.Node
             {
                 Children = new List<SyntaxTree.Node> { node },
@@ -344,6 +331,7 @@ namespace SignalCompiler
         private SyntaxTree.Node Identifier(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var node = Constants.GetLexem(lexTable[0].Id);
+            var top = lexTable[0];
 
             if (lexTable[0].Id < Constants.IdentifierStartIndex)
             {
@@ -353,17 +341,16 @@ namespace SignalCompiler
                     Message = "Not a identifier:" + node
                 });
                 return null;
-            } 
-
+            }
             lexTable.RemoveAt(0);
 
-            
+            PrintLexTable(lexTable, "after id popup");
 
             return new SyntaxTree.Node
             {
                 Children = null,
                 Type = "Identifier",
-                Value = node,
+                Value = top,
             };
         }
 
@@ -372,7 +359,7 @@ namespace SignalCompiler
             var node = Constants.GetLexem(lexTable[0].Id);
 
 
-            if (lexTable[0].Id < Constants.ConstStartIndex)
+            if (lexTable[0].Id < Constants.ConstStartIndex || lexTable[0].Id > Constants.IdentifierStartIndex)
             {
                 errors.Add(new CompilerError
                 {
@@ -380,15 +367,17 @@ namespace SignalCompiler
                     Message = "Not a identifier:" + node
                 });
                 return null;
-            } 
-
+            }
+            var top = lexTable[0];
             lexTable.RemoveAt(0);
+
+            PrintLexTable(lexTable, "after const popup");
 
             return new SyntaxTree.Node
             {
                 Children = null,
                 Type = "Integer",
-                Value = node
+                Value = top
             };
         }
     }

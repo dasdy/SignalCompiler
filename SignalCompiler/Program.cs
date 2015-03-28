@@ -24,7 +24,7 @@ namespace SignalCompiler
             Console.WriteLine("Lexems: ");
             foreach (var lex in lexTable)
             {
-                Console.Write("{0}, ", lex);
+                Console.WriteLine("{0} {1}", lex.Position, lex);
             }
             Console.WriteLine("\nErrors:");
             Console.ReadKey(false);
@@ -42,6 +42,8 @@ namespace SignalCompiler
             {
                 Console.WriteLine("{0} {1}",error.Position, error.Message);
             }
+
+            Console.WriteLine(tree.ToString());
         }
 
         private static string GetProgramCode(string[] args)

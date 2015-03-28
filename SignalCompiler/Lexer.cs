@@ -122,7 +122,7 @@ namespace SignalCompiler
             if (code[i] == ';' || code[i] == '=')
             {
                 i++;
-                return (int)Constants.GetLexemId(";");
+                return (int)Constants.GetLexemId(code[i-1].ToString());
             }
 
             var subStr = code.Substring(i, 2);
