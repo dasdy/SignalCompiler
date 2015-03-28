@@ -9,6 +9,7 @@ namespace SignalCompiler.Models
         public class Node
         {
             public string Type { get; set; }
+            public string Value { get; set; }
             public IList<Node> Children { get; set; } 
         }
     }

@@ -23,6 +23,7 @@ namespace SignalCompiler
         public static IEnumerable<string> MultiSymbolDelimiter;
         public static IEnumerable<string> Keywords;
         public static IEnumerable<string> GlobalLexemTable;
+        public static IEnumerable<string> ComparisonOperators; 
         public const string BegComment = "(*";
         public const string EndComment = "*)";
         public static IDictionary<int, string> LexemsTable;
@@ -114,6 +115,15 @@ namespace SignalCompiler
                 "END",
                 "IF",  "THEN", "ELSE", "ENDIF", 
                 "WHILE","DO", "ENDWHILE"
+            };
+            ComparisonOperators = new HashSet<string>
+            {
+                "<",
+                ">",
+                "=",
+                "<=",
+                ">=",
+                "<>"
             };
             //is this needed?
             GlobalLexemTable = Letters.Select(x => x.ToString())
