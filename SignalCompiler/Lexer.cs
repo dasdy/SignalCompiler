@@ -9,10 +9,10 @@ namespace SignalCompiler
 {
     public class Lexer
     {
-        public int[] Feed(string filepath, List<CompilerError> errors)
+        public List<Lexem> Feed(string filepath, List<CompilerError> errors)
         {
             string code;
-            var lexems = new List<int>();
+            var lexems = new List<Lexem>();
             if (File.Exists(filepath))
             {
                 code = File.ReadAllText(filepath);
@@ -28,6 +28,7 @@ namespace SignalCompiler
                 char cur = code[i];
                 int lexemCode = 0;
                 bool skipAdding = false;
+                var curPosition = CalcPosition(i, code);
                 if (cur >= Constants.Attributes.Length)
                 {
                     //unacceptable symbol
@@ -49,18 +50,14 @@ namespace SignalCompiler
                 }
                 else if (attr == Constants.LexemType.BegComment)
                 {
-                    int startCommentPos = i;
                     Console.WriteLine("started comment");
                     lexemCode = SkipComment(ref i, code);
                     if (lexemCode == -1)
                     {
-                        int line = CountLines(startCommentPos, code);
                         errors.Add(new CompilerError
                         {
                             Message = "unclosed comment",
-                            Position = startCommentPos,
-                            Line = line
-                            
+                            Position = curPosition       
                         });
                     }
                     skipAdding = true;
@@ -73,12 +70,10 @@ namespace SignalCompiler
                 else
                 {
                     //throw error?
-                    int line = CountLines(i, code);
                     errors.Add(new CompilerError
                     {
                         Message = "unacceptable symbol",
-                        Position = i,
-                        Line = line,
+                        Position = curPosition,
                     });
                     lexemCode = -1;
                     skipAdding = true;
@@ -89,23 +84,37 @@ namespace SignalCompiler
                 if (!skipAdding)
                 {
                     Console.WriteLine("lexType= {0}\n", lexemCode);
-                    lexems.Add(lexemCode);
+                    lexems.Add(new Lexem
+                    {
+                        Id = lexemCode,
+                        Position = curPosition,
+                    });
                 }
 
             }
 
 
-            return lexems.ToArray();
+            return lexems;
         }
 
-        private static int CountLines(int startCommentPos, string code)
+        private Position CalcPosition(int startPos, string code)
         {
-            int line = 1;
-            for (int iter = 0; iter < startCommentPos; iter++)
+            int line = 0;
+            int column = 0;
+            for (int iter = 0; iter < startPos; iter++)
             {
-                if (code[iter] == '\n') line++;
+                column++;
+                if (code[iter] == '\n')
+                {
+                    line++;
+                    column = 0;
+                }
             }
-            return line;
+            return new Position
+            {
+                Line = line + 1,
+                Column = column + 1,
+            };
         }
 
         private int ExamineDelimiter(ref int i, string code)

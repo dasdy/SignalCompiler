@@ -9,21 +9,20 @@ namespace SignalCompiler
 {
     public class Syntaxer
     {
-        public SyntaxTree Feed(int[] lexTable, IList<CompilerError> errors)
+        public SyntaxTree Feed(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            var lexStack = lexTable.ToList();
-            return Program(lexStack, errors);
+            return Program(lexTable, errors);
         }
 
-        private SyntaxTree Program(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree Program(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            if (lexTable[0] != Constants.GetLexemId("PROGRAM"))
+            
+            if (lexTable[0].Id != Constants.GetLexemId("PROGRAM"))
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
                     Message = @"expected 'PROGRAM'",
-                    Position = 0
+                    Position = lexTable[0].Position
                 });
                 return null;
             }
@@ -31,13 +30,12 @@ namespace SignalCompiler
 
             var procedureIdentifier = ProcIdentifier(lexTable, errors);
 
-            if (lexTable[0] != Constants.GetLexemId(";"))
+            if (lexTable[0].Id != Constants.GetLexemId(";"))
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
+                    Position = lexTable[0].Position,
                     Message = @"expected ';'",
-                    Position = 0
                 });
                 return null;
             }
@@ -55,15 +53,14 @@ namespace SignalCompiler
             return new SyntaxTree { RootNode = rootNode };
         }
 
-        private SyntaxTree.Node Block(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node Block(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            if (lexTable[0] != Constants.GetLexemId("BEGIN"))
+            if (lexTable[0].Id != Constants.GetLexemId("BEGIN"))
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
                     Message = @"expected 'BEGIN'",
-                    Position = 0
+                    Position = lexTable[0].Position
                 });
                 return null;
             }
@@ -80,7 +77,7 @@ namespace SignalCompiler
 
         }
 
-        private SyntaxTree.Node Stmtlist(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node Stmtlist(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var stmt = Stmt(lexTable, errors);
             if (stmt == null)
@@ -101,21 +98,20 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node Stmt(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node Stmt(List<Lexem> lexTable, IList<CompilerError> errors)
         {
 
-            if (lexTable[0] == Constants.GetLexemId("WHILE"))
+            if (lexTable[0].Id == Constants.GetLexemId("WHILE"))
             {
                 lexTable.RemoveAt(0);
                 var condExpr = CondExpr(lexTable, errors);
 
-                if (lexTable[0] != Constants.GetLexemId("DO"))
+                if (lexTable[0].Id != Constants.GetLexemId("DO"))
                 {
                     errors.Add(new CompilerError
                     {
-                        Line = 0,
                         Message = @"expected 'DO'",
-                        Position = 0
+                        Position = lexTable[0].Position
                     });
                     return null;
                 }
@@ -123,25 +119,23 @@ namespace SignalCompiler
 
                 var stmtlist = Stmtlist(lexTable, errors);
 
-                if (lexTable[0] != Constants.GetLexemId("ENDWHILE"))
+                if (lexTable[0].Id != Constants.GetLexemId("ENDWHILE"))
                 {
                     errors.Add(new CompilerError
                     {
-                        Line = 0,
                         Message = @"expected 'ENDWHILE'",
-                        Position = 0
+                        Position = lexTable[0].Position
                     });
                     return null;
                 }
                 lexTable.RemoveAt(0);
 
-                if (lexTable[0] != Constants.GetLexemId(";"))
+                if (lexTable[0].Id != Constants.GetLexemId(";"))
                 {
                     errors.Add(new CompilerError
                     {
-                        Line = 0,
                         Message = @"expected ';'",
-                        Position = 0
+                        Position = lexTable[0].Position
                     });
                     return null;
                 }
@@ -158,26 +152,24 @@ namespace SignalCompiler
 
             var condStatement = CondStmt(lexTable, errors);
 
-            if (lexTable[0] != Constants.GetLexemId("ENDIF"))
+            if (lexTable[0].Id != Constants.GetLexemId("ENDIF"))
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
                     Message = @"expected 'ENDIF'",
-                    Position = 0
+                    Position = lexTable[0].Position
                 });
                 return null;
             }
             lexTable.RemoveAt(0);
 
 
-            if (lexTable[0] != Constants.GetLexemId(";"))
+            if (lexTable[0].Id != Constants.GetLexemId(";"))
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
                     Message = @"expected ';'",
-                    Position = 0
+                    Position = lexTable[0].Position
                 });
                 return null;
             }
@@ -192,7 +184,7 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node CondStmt(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node CondStmt(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var thenStmt = ThenStmt(lexTable, errors);
             var elseStmt = ElseStmt(lexTable, errors);
@@ -206,15 +198,14 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node ThenStmt(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node ThenStmt(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            if (lexTable[0] == Constants.GetLexemId("IF"))
+            if (lexTable[0].Id == Constants.GetLexemId("IF"))
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
                     Message = @"expected 'IF'",
-                    Position = 0
+                    Position = lexTable[0].Position
                 });
                 return null;
             }
@@ -222,13 +213,12 @@ namespace SignalCompiler
 
             var condition = CondExpr(lexTable, errors);
 
-            if (lexTable[0] == Constants.GetLexemId("THEN"))
+            if (lexTable[0].Id == Constants.GetLexemId("THEN"))
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
                     Message = @"expected 'THEN'",
-                    Position = 0
+                    Position = lexTable[0].Position
                 });
                 return null;
             }
@@ -244,9 +234,9 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node ElseStmt(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node ElseStmt(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            if (lexTable[0] == Constants.GetLexemId("ELSE"))
+            if (lexTable[0].Id == Constants.GetLexemId("ELSE"))
             {
                 lexTable.RemoveAt(0);
                 var stmtList = Stmtlist(lexTable, errors);
@@ -261,7 +251,7 @@ namespace SignalCompiler
             return null;
         }
 
-        private SyntaxTree.Node CondExpr(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node CondExpr(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var lExpr = Expression(lexTable, errors);
             var comparison = ComparisonOp(lexTable, errors);
@@ -275,9 +265,9 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node ComparisonOp(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node ComparisonOp(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            var node = Constants.GetLexem(lexTable[0]);
+            var node = Constants.GetLexem(lexTable[0].Id);
             lexTable.RemoveAt(0);
 
             if (Constants.ComparisonOperators.Contains(node))
@@ -292,16 +282,15 @@ namespace SignalCompiler
 
             errors.Add(new CompilerError
             {
-                Line = 0,
                 Message = "Unknown comparisonOperator:" + node,
-                Position = 0,
+                Position = lexTable[0].Position
             });
             return null;
         }
 
-        private SyntaxTree.Node Expression(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node Expression(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            var id = lexTable[0];
+            var id = lexTable[0].Id;
             string type;
             SyntaxTree.Node child;
 
@@ -330,7 +319,7 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node VarIdentifier(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node VarIdentifier(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var node = Identifier(lexTable, errors);
             return new SyntaxTree.Node
@@ -341,7 +330,7 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node ProcIdentifier(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node ProcIdentifier(List<Lexem> lexTable, IList<CompilerError> errors)
         {
             var node = Identifier(lexTable, errors);
             return new SyntaxTree.Node
@@ -352,16 +341,15 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node Identifier(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node Identifier(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            var node = Constants.GetLexem(lexTable[0]);
+            var node = Constants.GetLexem(lexTable[0].Id);
 
-            if (lexTable[0] < Constants.IdentifierStartIndex)
+            if (lexTable[0].Id < Constants.IdentifierStartIndex)
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
-                    Position = 0,
+                    Position = lexTable[0].Position,
                     Message = "Not a identifier:" + node
                 });
                 return null;
@@ -379,17 +367,16 @@ namespace SignalCompiler
             };
         }
 
-        private SyntaxTree.Node Integer(List<int> lexTable, IList<CompilerError> errors)
+        private SyntaxTree.Node Integer(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            var node = Constants.GetLexem(lexTable[0]);
+            var node = Constants.GetLexem(lexTable[0].Id);
 
 
-            if (lexTable[0] < Constants.ConstStartIndex)
+            if (lexTable[0].Id < Constants.ConstStartIndex)
             {
                 errors.Add(new CompilerError
                 {
-                    Line = 0,
-                    Position = 0,
+                    Position = lexTable[0].Position,
                     Message = "Not a identifier:" + node
                 });
                 return null;
