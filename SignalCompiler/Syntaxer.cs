@@ -16,6 +16,14 @@ namespace SignalCompiler
 
         private bool CheckTop(List<Lexem> lexTable, string val, IList<CompilerError> errors)
         {
+            if (!lexTable.Any())
+            {
+                errors.Add(new CompilerError
+                {
+                    Message = string.Format("expected {0}, got EOF", val),
+                });
+                return false;
+            }
             if (lexTable[0].Id != Constants.GetLexemId(val))
             {
                 errors.Add(new CompilerError
@@ -32,14 +40,14 @@ namespace SignalCompiler
 
         public void PrintLexTable(List<Lexem> lexTable, string message)
         {
-            Console.WriteLine(message);
+            //Console.WriteLine(message);
 
-            foreach (var lexem in lexTable)
-            {
-                Console.WriteLine(lexem);
-            }
-            //Console.ReadKey(true);
-            Console.WriteLine();
+            //foreach (var lexem in lexTable)
+            //{
+            //    Console.WriteLine(lexem);
+            //}
+            ////Console.ReadKey(true);
+            //Console.WriteLine();
 
         }
 
@@ -93,7 +101,12 @@ namespace SignalCompiler
             //PrintLexTable(lexTable, "after stmt popup");
             if (stmt == null)
             {
-                return null;
+                return new SyntaxTree.Node
+                {
+                    Children = null,
+                    Type = "StmtList",
+                    Value = null,
+                };
             }
 
             var nextStatements = Stmtlist(lexTable, errors);
@@ -101,7 +114,7 @@ namespace SignalCompiler
             //PrintLexTable(lexTable, "after stmtlist popup");
 
             var children = new List<SyntaxTree.Node> { stmt };
-            if (nextStatements != null)
+            if (nextStatements.Children != null)
             {
                 children.AddRange(nextStatements.Children);
             }
@@ -116,8 +129,7 @@ namespace SignalCompiler
 
         private SyntaxTree.Node Stmt(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-
-            if (lexTable[0].Id == Constants.GetLexemId("WHILE"))
+            if (lexTable.Any() && lexTable[0].Id == Constants.GetLexemId("WHILE"))
             {
                 lexTable.RemoveAt(0);
                 PrintLexTable(lexTable, "after while popup");
@@ -145,7 +157,7 @@ namespace SignalCompiler
                 };
             }
 
-            if (lexTable[0].Id == Constants.GetLexemId("IF"))
+            if (lexTable.Any() && lexTable[0].Id == Constants.GetLexemId("IF"))
             {
 
 
@@ -207,7 +219,7 @@ namespace SignalCompiler
 
         private SyntaxTree.Node ElseStmt(List<Lexem> lexTable, IList<CompilerError> errors)
         {
-            if (lexTable[0].Id == Constants.GetLexemId("ELSE"))
+            if (lexTable.Any() && lexTable[0].Id == Constants.GetLexemId("ELSE"))
             {
                 lexTable.RemoveAt(0);
                 PrintLexTable(lexTable, "before ELSE popup");
@@ -242,6 +254,14 @@ namespace SignalCompiler
 
         private SyntaxTree.Node ComparisonOp(List<Lexem> lexTable, IList<CompilerError> errors)
         {
+            if (!lexTable.Any())
+            {
+                errors.Add(new CompilerError
+                {
+                    Message = "expected comparisonOp, got EOF"
+                });
+                return null;
+            }
             var node = Constants.GetLexem(lexTable[0].Id);
             var top = lexTable[0];
             lexTable.RemoveAt(0);
@@ -268,6 +288,15 @@ namespace SignalCompiler
 
         private SyntaxTree.Node Expression(List<Lexem> lexTable, IList<CompilerError> errors)
         {
+            if (!lexTable.Any())
+            {
+                errors.Add(new CompilerError
+                {
+                    Message = "expected expression, got EOF"
+                });
+                return null;
+            }
+
             PrintLexTable(lexTable, "before expr popup");
             var id = lexTable[0].Id;
             string type;
@@ -291,7 +320,7 @@ namespace SignalCompiler
                 {
                     Message = "expected id or number",
                     Position = lexTable[0].Position
-                   
+
                 });
                 return null;
             }
@@ -330,6 +359,14 @@ namespace SignalCompiler
 
         private SyntaxTree.Node Identifier(List<Lexem> lexTable, IList<CompilerError> errors)
         {
+            if (!lexTable.Any())
+            {
+                errors.Add(new CompilerError
+                {
+                    Message = "expected identifier, got EOF"
+                });
+                return null;
+            }
             var node = Constants.GetLexem(lexTable[0].Id);
             var top = lexTable[0];
 
@@ -356,6 +393,14 @@ namespace SignalCompiler
 
         private SyntaxTree.Node Integer(List<Lexem> lexTable, IList<CompilerError> errors)
         {
+            if (!lexTable.Any())
+            {
+                errors.Add(new CompilerError
+                {
+                    Message = "expected integer, got EOF"
+                });
+                return null;
+            }
             var node = Constants.GetLexem(lexTable[0].Id);
 
 
@@ -364,7 +409,7 @@ namespace SignalCompiler
                 errors.Add(new CompilerError
                 {
                     Position = lexTable[0].Position,
-                    Message = "Not a identifier:" + node
+                    Message = "Not an integer:" + node
                 });
                 return null;
             }

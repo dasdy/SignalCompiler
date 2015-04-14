@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using SignalCompiler.Models;
 
 namespace SignalCompiler
@@ -37,13 +38,21 @@ namespace SignalCompiler
 
             var syntaxer = new Syntaxer();
             var tree = syntaxer.Feed(lexTable, errors);
-
+            
             foreach (var error in errors)
             {
                 Console.WriteLine("{0} {1}",error.Position, error.Message);
             }
 
-            Console.WriteLine(tree.ToString());
+            if (tree == null) return;
+            string treeStringRep = tree.ToString();
+            Console.WriteLine(treeStringRep);
+
+            using (var wrighter = File.CreateText("out.txt"))
+            {
+                wrighter.WriteLine(treeStringRep);
+            }
+
         }
 
         private static string GetProgramCode(string[] args)
