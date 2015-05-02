@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SignalCompiler.Models;
 
 namespace SignalCompiler
@@ -65,10 +62,9 @@ namespace SignalCompiler
 
             var block = Block(lexTable, errors);
 
-            var rootNode = new SyntaxTree.Node
+            var rootNode = new Models.Program
             {
                 Children = new List<SyntaxTree.Node> { procedureIdentifier, block },
-                Type = "Program",
                 Value = null,
             };
 
@@ -83,13 +79,12 @@ namespace SignalCompiler
 
             var stmtlist = Stmtlist(lexTable, errors);
             PrintLexTable(lexTable, "after stmtlist popup");
-            if (!CheckTop(lexTable, "END", errors)) ;
+            if (!CheckTop(lexTable, "END", errors)) return null;
 
             PrintLexTable(lexTable, "after end popup");
-            return new SyntaxTree.Node
+            return new Block
             {
                 Children = new List<SyntaxTree.Node> { stmtlist },
-                Type = "Block",
                 Value = null,
             };
 
@@ -101,10 +96,9 @@ namespace SignalCompiler
             //PrintLexTable(lexTable, "after stmt popup");
             if (stmt == null)
             {
-                return new SyntaxTree.Node
+                return new StmtList
                 {
                     Children = null,
-                    Type = "StmtList",
                     Value = null,
                 };
             }
@@ -119,10 +113,9 @@ namespace SignalCompiler
                 children.AddRange(nextStatements.Children);
             }
 
-            return new SyntaxTree.Node
+            return new StmtList
             {
                 Children = children,
-                Type = "StmtList",
                 Value = null,
             };
         }
@@ -144,15 +137,13 @@ namespace SignalCompiler
                 PrintLexTable(lexTable, "after ENDWHILE popup");
                 if (!CheckTop(lexTable, ";", errors)) return null;
                 PrintLexTable(lexTable, "after ';' popup 2");
-                return new SyntaxTree.Node
+                return new Stmt
                 {
-                    Children = new List<SyntaxTree.Node> { new SyntaxTree.Node
+                    Children = new List<SyntaxTree.Node> { new WhileStmt()
                     {
                      Children =  new []{condExpr, stmtlist},
-                     Type = "WhileStmt",
                      Value = null,
                     }},
-                    Type = "Stmt",
                     Value = null
                 };
             }
@@ -169,10 +160,9 @@ namespace SignalCompiler
                 if (!CheckTop(lexTable, ";", errors)) return null;
                 PrintLexTable(lexTable, "after ';' popup 3");
 
-                return new SyntaxTree.Node
+                return new Stmt
                 {
                     Children = new List<SyntaxTree.Node> { condStatement },
-                    Type = "Stmt",
                     Value = null,
                 };
 
@@ -191,10 +181,9 @@ namespace SignalCompiler
 
             if (elseStmt != null) children.Add(elseStmt);
 
-            return new SyntaxTree.Node
+            return new IfStmt
             {
                 Children = children,
-                Type = "IfStmt",
                 Value = null,
             };
         }
@@ -209,10 +198,9 @@ namespace SignalCompiler
             PrintLexTable(lexTable, "after THEN popup");
             var stmts = Stmtlist(lexTable, errors);
             //PrintLexTable(lexTable, "after stmtlist popup");
-            return new SyntaxTree.Node
+            return new IfThen()
             {
                 Children = new List<SyntaxTree.Node> { condition, stmts },
-                Type = "IfThen",
                 Value = null,
             };
         }
@@ -225,10 +213,9 @@ namespace SignalCompiler
                 PrintLexTable(lexTable, "before ELSE popup");
                 var stmtList = Stmtlist(lexTable, errors);
                 //PrintLexTable(lexTable, "after stmtlist popup");
-                return new SyntaxTree.Node
+                return new IfElse
                 {
                     Children = new List<SyntaxTree.Node> { stmtList },
-                    Type = "ElseStmt",
                     Value = null,
                 };
             }
@@ -244,10 +231,9 @@ namespace SignalCompiler
             //PrintLexTable(lexTable, "after condOp popup");
             var rExpr = Expression(lexTable, errors);
             //PrintLexTable(lexTable, "after rExpr popup");
-            return new SyntaxTree.Node
+            return new CondExpr
             {
                 Children = new List<SyntaxTree.Node> { lExpr, comparison, rExpr },
-                Type = "ConditionalExpression",
                 Value = null,
             };
         }
@@ -268,10 +254,9 @@ namespace SignalCompiler
 
             if (Constants.ComparisonOperators.Contains(node))
             {
-                return new SyntaxTree.Node
+                return new ComparisonOp
                 {
                     Children = null,
-                    Type = "CompOp",
                     Value = top,
                 };
             }
@@ -306,12 +291,10 @@ namespace SignalCompiler
             {
                 //it is a identifier
                 child = VarIdentifier(lexTable, errors);
-                type = "ExprIdentifier";
             }
             else if (id >= Constants.ConstStartIndex)
             {
                 //it is constant
-                type = "ExprConstant";
                 child = Integer(lexTable, errors);
             }
             else
@@ -325,10 +308,9 @@ namespace SignalCompiler
                 return null;
             }
             PrintLexTable(lexTable, "after expression popup");
-            return new SyntaxTree.Node
+            return new Expression
             {
                 Children = new List<SyntaxTree.Node> { child },
-                Type = type,
                 Value = null,
             };
         }
@@ -337,10 +319,9 @@ namespace SignalCompiler
         {
             var node = Identifier(lexTable, errors);
             //PrintLexTable(lexTable, "after id popup");
-            return new SyntaxTree.Node
+            return new VarIdentifier
             {
                 Children = new List<SyntaxTree.Node> { node },
-                Type = "VariableIdentifier",
                 Value = null,
             };
         }
@@ -349,10 +330,9 @@ namespace SignalCompiler
         {
             var node = Identifier(lexTable, errors);
             //PrintLexTable(lexTable, "after id popup");
-            return new SyntaxTree.Node
+            return new ProcIdentifier
             {
                 Children = new List<SyntaxTree.Node> { node },
-                Type = "ProcedureIdentifier",
                 Value = null,
             };
         }
@@ -383,10 +363,9 @@ namespace SignalCompiler
 
             PrintLexTable(lexTable, "after id popup");
 
-            return new SyntaxTree.Node
+            return new Identifier
             {
                 Children = null,
-                Type = "Identifier",
                 Value = top,
             };
         }
@@ -418,10 +397,9 @@ namespace SignalCompiler
 
             PrintLexTable(lexTable, "after const popup");
 
-            return new SyntaxTree.Node
+            return new Integer
             {
                 Children = null,
-                Type = "Integer",
                 Value = top
             };
         }

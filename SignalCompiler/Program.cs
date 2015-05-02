@@ -6,7 +6,7 @@ using SignalCompiler.Models;
 
 namespace SignalCompiler
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {

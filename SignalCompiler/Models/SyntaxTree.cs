@@ -10,7 +10,6 @@ namespace SignalCompiler.Models
 
         public class Node
         {
-            public string Type { get; set; }
             public Lexem Value { get; set; }
             public IList<Node> Children { get; set; }
 
@@ -23,10 +22,10 @@ namespace SignalCompiler.Models
                     {
                         childrenStrBuilder.AppendFormat("{0} ", child);
                     }
-                    return string.Format("({0} {1})", Type, childrenStrBuilder);
+                    return string.Format("({0} {1})", GetType().Name, childrenStrBuilder);
                 }
 
-                return string.Format("({0} {1})", Type, Value);
+                return string.Format("({0} {1})", this.GetType().Name, Value);
             }
         }
 
