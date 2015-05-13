@@ -30,7 +30,7 @@ namespace SignalCompiler
             listing.Add(".386");
             listing.Add("DATA SEGMENT USE16");
 
-            int curIndex = Constants.ConstStartIndex;
+            int curIndex = Constants.IdentifierStartIndex;
             string id = Constants.GetLexem(curIndex);
             while (id != null)
             {
@@ -59,16 +59,22 @@ namespace SignalCompiler
 
         private void Feed(StmtList node, IList<string> listing, IList<CompilerError> errors)
         {
-            foreach (var child in node.Children)
+            if (node.Children != null && node.Children.Any())
             {
-                listing.Add("; new stmt");
-                Feed(child, listing, errors);
+                foreach (var child in node.Children)
+                {
+                    listing.Add("; new stmt");
+                    Feed(child as Stmt, listing, errors);
+                }
             }
         }
 
         private void Feed(Stmt node, IList<string> listing, IList<CompilerError> errors)
         {
-            Feed(node.TheStmt, listing, errors);
+            if (node.TheStmt is WhileStmt)
+                Feed((WhileStmt) node.TheStmt, listing, errors);
+            else
+                Feed((IfStmt) node.TheStmt, listing, errors);
         }
 
         private void Feed(WhileStmt node, IList<string> listing, IList<CompilerError> errors)
@@ -136,7 +142,7 @@ namespace SignalCompiler
         private void Feed(CondExpr node, IList<string> listing, IList<CompilerError> errors, string label)
         {
             var jump = CondToJump(Constants.GetLexem(node.Children[1].Value.Id));
-            listing.Add(string.Format("cmp {0}, {1}", node.Children[0], node.Children[2]));
+            listing.Add(string.Format("cmp {0}, {1}", ((Expression)node.Children[0]).Val, ((Expression)node.Children[2]).Val));
             listing.Add(string.Format("{0} {1}", jump, label));
         }
 

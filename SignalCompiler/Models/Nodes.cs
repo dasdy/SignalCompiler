@@ -119,7 +119,25 @@ namespace SignalCompiler.Models
     {
         public string Val { get { return Constants.GetLexem(Value.Id); } }
     }
-    public class Expression : SyntaxTree.Node { }
+
+    public class Expression : SyntaxTree.Node
+    {
+        public string Val
+        {
+            get
+            {
+                var exprVarIdent = Children[0] as VarIdentifier;
+                if (exprVarIdent != null)
+                    return exprVarIdent.Id;
+
+                var exprInt = Children[0] as Integer;
+                if (exprInt != null)
+                    return exprInt.Val.ToString();
+
+                return null;
+            }
+        }
+    }
 
     public class VarIdentifier : SyntaxTree.Node
     {

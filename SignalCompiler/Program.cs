@@ -53,6 +53,13 @@ namespace SignalCompiler
                 wrighter.WriteLine(treeStringRep);
             }
 
+            var codeGen = new CodeGenerator();
+            string res = codeGen.Feed(tree, errors);
+            Console.Write("res:\n" + res + "\nerrors:\n");
+            foreach (var error in errors)
+            {
+                Console.WriteLine("{0} {1}", error.Position, error.Message);
+            }
         }
 
         private static string GetProgramCode(string[] args)
