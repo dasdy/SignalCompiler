@@ -30,7 +30,7 @@ namespace SignalCompiler
             listing.Add(".386");
             listing.Add("DATA SEGMENT USE16");
 
-            int curIndex = Constants.IdentifierStartIndex;
+            int curIndex = Constants.IdentifierStartIndex + 2;
             string id = Constants.GetLexem(curIndex);
             while (id != null)
             {
@@ -114,17 +114,29 @@ namespace SignalCompiler
             bool? compRes = node.Condition.Evaluate();
             if (compRes == null)
             {
-                string elseLabel = GetNewLabel();
                 string endifLabel = GetNewLabel();
-                Feed(node.Condition, listing, errors, elseLabel);
-                Feed(node.ThenStmt, listing, errors);
+                if (node.ElseStmt != null)
+                {
+                    string elseLabel = GetNewLabel();
 
-                listing.Add(string.Format("jmp {0}", endifLabel));
-                listing.Add(string.Format("{0}:", elseLabel));
-                
-                Feed(node.ElseStmt, listing, errors);
-                
-                listing.Add(string.Format("{0}:", endifLabel));
+                    Feed(node.Condition, listing, errors, elseLabel);
+                    Feed(node.ThenStmt, listing, errors);
+
+                    listing.Add(string.Format("jmp {0}", endifLabel));
+                    listing.Add(string.Format("{0}:", elseLabel));
+
+                    Feed(node.ElseStmt, listing, errors);
+
+                    listing.Add(string.Format("{0}:", endifLabel));
+                }
+                else
+                {
+
+                    Feed(node.Condition, listing, errors, endifLabel);
+                    Feed(node.ThenStmt, listing, errors);
+
+                    listing.Add(string.Format("{0}:", endifLabel));
+                }
             }
             else
             {

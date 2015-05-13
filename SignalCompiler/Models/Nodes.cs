@@ -14,7 +14,7 @@ namespace SignalCompiler.Models
         {
             get
             {
-                return Children.Any() 
+                return Children.Any()
                     ? Children[0] as StmtList
                     : null;
             }
@@ -87,7 +87,14 @@ namespace SignalCompiler.Models
 
     public class CondExpr : SyntaxTree.Node
     {
-        private bool IsEvaluatable { get { return Children[0].Children[0] is Integer && Children[2].Children[0] is Integer; } }
+        private bool IsEvaluatable
+        {
+            get
+            {
+                return Children[0].Children != null && Children[2].Children != null &&
+                Children[0].Children[0] is Integer && Children[2].Children[0] is Integer;
+            }
+        }
 
         public bool? Evaluate()
         {
