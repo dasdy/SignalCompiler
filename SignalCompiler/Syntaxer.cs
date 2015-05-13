@@ -62,7 +62,7 @@ namespace SignalCompiler
 
             var block = Block(lexTable, errors);
 
-            var rootNode = new Models.Program
+            var rootNode = new ProgramNode
             {
                 Children = new List<SyntaxTree.Node> { procedureIdentifier, block },
                 Value = null,

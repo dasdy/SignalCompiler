@@ -2,7 +2,7 @@
 
 namespace SignalCompiler.Models
 {
-    public class Program : SyntaxTree.Node
+    public class ProgramNode : SyntaxTree.Node
     {
         public ProcIdentifier ProcIdentifier { get { return Children[0] as ProcIdentifier; } }
         public Block Block { get { return Children[1] as Block; } }
@@ -31,12 +31,12 @@ namespace SignalCompiler.Models
     {
         public CondExpr Condition { get { return Children[0] as CondExpr; } }
 
-        public Block Body
+        public StmtList Body
         {
             get
             {
                 return Children.Count > 1
-                    ? Children[1] as Block
+                    ? Children[1] as StmtList
                     : null;
             }
         }
@@ -71,7 +71,19 @@ namespace SignalCompiler.Models
             }
         }
     }
-    public class IfElse : SyntaxTree.Node { }
+
+    public class IfElse : SyntaxTree.Node
+    {
+        public StmtList StmtList
+        {
+            get
+            {
+                return (Children.Any())
+                    ? Children[0] as StmtList
+                    : null;
+            }
+        }
+    }
 
     public class CondExpr : SyntaxTree.Node
     {

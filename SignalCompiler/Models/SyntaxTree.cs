@@ -6,7 +6,7 @@ namespace SignalCompiler.Models
 {
     public class SyntaxTree
     {
-        public Node RootNode { get; set; }
+        public ProgramNode RootNode { get; set; }
 
         public class Node
         {
